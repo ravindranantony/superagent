@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  name          String?
+  passwordHash   String
+  preferences   Json?
+  credentials   Credential[]
+  tasks         Task[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Credential {
+  id            String    @id @default(cuid())
+  userId        String
+  service       String
+  encryptedData Bytes
+  metadata      Json?
+  user          User      @relation(fields: [userId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([userId, service])
+}
+
+model Task {
+  id            String    @id @default(cuid())
+  userId        String
+  type          String
+  status        String
+  priority      Int       @default(0)
+  context       Json
+  result        Json?
+  user          User      @relation(fields: [userId], references: [id])
+  createdAt     DateTime  @default(now())
+  completedAt   DateTime?
+  updatedAt     DateTime  @updatedAt
+}
+
+model TaskLog {
+  id            String    @id @default(cuid())
+  taskId        String
+  level         String
+  message       String
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+}
